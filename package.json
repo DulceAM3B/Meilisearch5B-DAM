@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "git": "^0.1.5",
+    "meilisearch": "^0.48.1",
+    "nodemon": "^3.1.9"
+  }
+}

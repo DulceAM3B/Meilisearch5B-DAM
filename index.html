@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movies~</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1c1c1c;
+      color: #fff;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin: 20px 0;
+      color: #f5c518;
+    }
+    form {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      padding: 12px;
+      width: 350px;
+      font-size: 16px;
+      border: 2px solid #555;
+      border-radius: 5px;
+      background-color: #2e2e2e;
+      color: #fff;
+    }
+    input[type="text"]::placeholder {
+      color: #aaa;
+    }
+    button {
+      padding: 12px 18px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #f5c518;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    button:hover {
+      background-color: #e3af09;
+    }
+    #results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 10px;
+    }
+    .result-item {
+      background: #2e2e2e;
+      border-radius: 10px;
+      overflow: hidden;
+      text-align: center;
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .result-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    }
+    .result-item img {
+      width: 100%;
+      height: 350px;
+      object-fit: cover;
+    }
+    .result-item h3 {
+      font-size: 1.2rem;
+      margin: 10px 0;
+      color: #f5c518;
+    }
+    .result-item p {
+      font-size: 0.9rem;
+      color: #ccc;
+      padding: 0 10px 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 Cartelera de Películas 🎥</h1>
+  <!-- Formulario para buscar películas -->
+  <form id="searchForm">
+    <input type="text" id="query" placeholder="Buscar una película..." required />
+    <button type="submit">Buscar</button>
+  </form>
+  <div id="results"></div>
+
+  <script>
+    // EVENTO para buscar películas al presionar el input de búsqueda
+    const form = document.getElementById('searchForm');
+    // Se mostrarán los resultados de la búsqueda
+    const resultsDiv = document.getElementById('results');
+    
+    // Evento para buscar películas al presionar el botón "Buscar"
+    form.addEventListener('submit', async (e) => {
+      // Prevenir el evento de envío del formulario
+      e.preventDefault();
+      const query = document.getElementById('query').value;
+
+      try {
+        // Realizar la petición a la API de The Movie Database
+        const response = await fetch('http://localhost:8000/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query }),
+        });
+        // Validar el estado de la respuesta
+        if (!response.ok) {
+          throw new Error('Error al realizar la búsqueda');
+        }
+
+        const data = await response.json();
+
+        // Limpiar los resultados anteriores
+        resultsDiv.innerHTML = '';
+
+        if (data.hits && data.hits.length > 0) {
+          // Mostrar los resultados en pantalla
+          data.hits.forEach((movie) => {
+            // Obtener la URL del poster de la película O un placeholder en caso de que no tenga uno
+            const imageUrl = movie.poster || `http://172.233.131.83/${movie.poster_path}` || 'https://via.placeholder.com/250x350';
+
+            const div = document.createElement('div');
+            div.classList.add('result-item');
+            // Añadir el contenido con los detalles de la película
+            div.innerHTML = `
+              <img src="${imageUrl}" alt="Poster de ${movie.title}">
+              <h3>${movie.title}</h3>
+              <p>${movie.overview || 'Sin descripción disponible'}</p>
+              <p><strong>Géneros:</strong> ${movie.genres ? movie.genres.join(', ') : 'N/A'}</p>
+              <p><strong>Fecha de lanzamiento:</strong> ${movie.release_date || 'N/A'}</p>
+            `;
+            // Añadir al contenido principal de resultados
+            resultsDiv.appendChild(div);
+          });
+        } else {
+          // Mostrar un mensaje de error en caso de no encontrar resultados
+          resultsDiv.innerHTML = '<p>No se encontraron resultados.</p>';
+        }
+      } catch (error) {
+        // Mostrar un mensaje de error en caso de un problema con la petición a la API
+        console.error('Error:', error);
+        resultsDiv.innerHTML = '<p>Error al realizar la búsqueda. Intenta de nuevo más tarde.</p>';
+      }
+    });
+  </script>
+</body>
+</html>
